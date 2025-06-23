@@ -1,6 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Edge;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,9 @@ namespace TestAutomationTask.Drivers
 {
     public class WebDriverFactory
     {
-        private static WebDriverFactory? _instance;
-        private static readonly object _lock = new object();
-        private readonly ThreadLocal<IWebDriver> _driver = new ThreadLocal<IWebDriver>();
+        private static WebDriverFactory? instance;
+        private static readonly object lockObject = new();
+        private readonly ThreadLocal<IWebDriver> driver = new();
 
         private WebDriverFactory() { }
 
@@ -21,25 +22,21 @@ namespace TestAutomationTask.Drivers
         {
             get
             {
-                if (_instance == null)
+                if (instance == null)
                 {
-                    lock (_lock)
+                    lock (lockObject)
                     {
-                        if (_instance == null)
-                            _instance = new WebDriverFactory();
+                        instance ??= new WebDriverFactory();
                     }
                 }
-                return _instance;
+                return instance;
             }
         }
 
         public IWebDriver GetDriver(string browserType = "Chrome")
         {
-            if (_driver.Value == null)
-            {
-                _driver.Value = CreateDriver(browserType);
-            }
-            return _driver.Value;
+            driver.Value ??= CreateDriver(browserType);
+            return driver.Value;
         }
 
         private static IWebDriver CreateDriver(string browserType)
@@ -48,11 +45,12 @@ namespace TestAutomationTask.Drivers
             {
                 "chrome" => CreateChromeDriver(),
                 "firefox" => CreateFirefoxDriver(),
+                "edge" => CreateEdgeDriver(),
                 _ => throw new ArgumentException($"Browser type '{browserType}' is not supported")
             };
         }
 
-        private static IWebDriver CreateChromeDriver()
+        private static ChromeDriver CreateChromeDriver()
         {
             var options = new ChromeOptions();
             options.AddArguments("--start-maximized");
@@ -65,7 +63,7 @@ namespace TestAutomationTask.Drivers
             return driver;
         }
 
-        private static IWebDriver CreateFirefoxDriver()
+        private static FirefoxDriver CreateFirefoxDriver()
         {
             var options = new FirefoxOptions();
             options.AddArguments("--start-maximized");
@@ -75,21 +73,32 @@ namespace TestAutomationTask.Drivers
             return driver;
         }
 
+        private static EdgeDriver CreateEdgeDriver()
+        {
+            var options = new EdgeOptions();
+            options.AddArgument("--start-maximized");
+
+            var driver = new EdgeDriver(options);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            return driver;
+        }
+
         public void QuitDriver()
         {
-            if (_driver.Value != null)
+            if (driver.Value != null)
             {
-                _driver.Value.Quit();
-                _driver.Value = null;
+                driver.Value.Quit();
+                driver.Value = null!; // Use null-forgiving operator to suppress CS8625
             }
         }
 
         public void DisposeAll()
         {
-            if (_driver.Value != null)
+            if (driver.Value != null)
             {
-                _driver.Value.Quit();
-                _driver.Dispose();
+                driver.Value.Quit();
+                driver.Dispose();
+                driver.Value = null!; // Use null-forgiving operator to suppress CS8625
             }
         }
     }

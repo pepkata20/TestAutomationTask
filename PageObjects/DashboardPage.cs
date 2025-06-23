@@ -10,23 +10,23 @@ namespace TestAutomationTask.PageObjects
 {
     public class DashboardPage
     {
-        private readonly IWebDriver _driver;
-        private readonly WebDriverWait _wait;
+        private readonly IWebDriver driver;
+        private readonly WebDriverWait wait;
 
         // XPath locators
-        private readonly By _appLogo = By.XPath("//div[@class='app_logo']");
+        private readonly By appLogo = By.XPath("//div[@class='app_logo']");
 
         public DashboardPage(IWebDriver driver)
         {
-            _driver = driver;
-            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+            this.driver = driver;
+            wait = new WebDriverWait(this.driver, TimeSpan.FromSeconds(10));
         }
 
         public string GetAppLogoText()
         {
             try
             {
-                var logoElement = _wait.Until(d => d.FindElement(_appLogo));
+                var logoElement = wait.Until(d => d.FindElement(appLogo));
                 return logoElement.Text;
             }
             catch (WebDriverTimeoutException)

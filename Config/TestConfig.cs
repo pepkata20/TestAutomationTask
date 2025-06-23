@@ -20,6 +20,6 @@ namespace TestAutomationTask.Config
         public const string ExpectedDashboardTitle = "Swag Labs";
 
         // Browser types for parallel execution
-        public static readonly string[] BrowserTypes = { "Chrome", "Firefox" };
+        public static readonly string[] BrowserTypes = ["Chrome", "Firefox", "Edge"];
     }
 }

@@ -11,49 +11,49 @@ namespace TestAutomationTask.PageObjects
 {
     public class LoginPage
     {
-        private readonly IWebDriver _driver;
-        private readonly WebDriverWait _wait;
+        private readonly IWebDriver driver;
+        private readonly WebDriverWait wait;
 
         // XPath locators
-        private readonly By _usernameField = By.XPath("//input[@id='user-name']");
-        private readonly By _passwordField = By.XPath("//input[@id='password']");
-        private readonly By _loginButton = By.XPath("//input[@id='login-button']");
-        private readonly By _errorMessage = By.XPath("//h3[@data-test='error']");
+        private readonly By usernameField = By.XPath("//input[@id='user-name']");
+        private readonly By passwordField = By.XPath("//input[@id='password']");
+        private readonly By loginButton = By.XPath("//input[@id='login-button']");
+        private readonly By errorMessage = By.XPath("//h3[@data-test='error']");
 
         public LoginPage(IWebDriver driver)
         {
-            _driver = driver;
-            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+            this.driver = driver;
+            wait = new WebDriverWait(this.driver, TimeSpan.FromSeconds(10));
         }
 
         public void NavigateToLoginPage()
         {
-            _driver.Navigate().GoToUrl(TestConfig.BaseUrl);
+            driver.Navigate().GoToUrl(TestConfig.BaseUrl);
         }
 
         public void EnterUsername(string username)
         {
-            var usernameElement = _wait.Until(d => d.FindElement(_usernameField));
+            var usernameElement = wait.Until(d => d.FindElement(usernameField));
             usernameElement.Clear();
             usernameElement.SendKeys(username);
         }
 
         public void EnterPassword(string password)
         {
-            var passwordElement = _wait.Until(d => d.FindElement(_passwordField));
+            var passwordElement = wait.Until(d => d.FindElement(passwordField));
             passwordElement.Clear();
             passwordElement.SendKeys(password);
         }
 
         public void ClearUsername()
         {
-            var usernameElement = _wait.Until(d => d.FindElement(_usernameField));
+            var usernameElement = wait.Until(d => d.FindElement(usernameField));
             ClearFieldReliably(usernameElement);
         }
 
         public void ClearPassword()
         {
-            var passwordElement = _wait.Until(d => d.FindElement(_passwordField));
+            var passwordElement = wait.Until(d => d.FindElement(passwordField));
             ClearFieldReliably(passwordElement);
         }
 
@@ -66,7 +66,7 @@ namespace TestAutomationTask.PageObjects
 
         public void ClickLoginButton()
         {
-            var loginButtonElement = _wait.Until(d => d.FindElement(_loginButton));
+            var loginButtonElement = wait.Until(d => d.FindElement(loginButton));
             loginButtonElement.Click();
         }
 
@@ -74,7 +74,7 @@ namespace TestAutomationTask.PageObjects
         {
             try
             {
-                var errorElement = _wait.Until(d => d.FindElement(_errorMessage));
+                var errorElement = wait.Until(d => d.FindElement(errorMessage));
                 return errorElement.Text;
             }
             catch (WebDriverTimeoutException)
@@ -87,7 +87,7 @@ namespace TestAutomationTask.PageObjects
         {
             try
             {
-                var errorElement = _wait.Until(d => d.FindElement(_errorMessage));
+                var errorElement = wait.Until(d => d.FindElement(errorMessage));
                 return errorElement.Displayed;
             }
             catch (WebDriverTimeoutException)
