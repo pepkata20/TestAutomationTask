@@ -1,10 +1,6 @@
 ﻿using FluentAssertions;
 using OpenQA.Selenium;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OpenQA.Selenium.BiDi.Communication;
 using TestAutomationTask.Config;
 using TestAutomationTask.Drivers;
 using TestAutomationTask.PageObjects;
@@ -12,17 +8,20 @@ using Xunit.Abstractions;
 
 namespace TestAutomationTask.Tests
 {
-    public class LoginTests : IDisposable
+    public abstract class LoginTestsBase : IDisposable
     {
-        private readonly IWebDriver _driver;
-        private readonly LoginPage _loginPage;
-        private readonly DashboardPage _dashboardPage;
+        private IWebDriver _driver;
+        private LoginPage _loginPage;
+        private DashboardPage _dashboardPage;
         private readonly ITestOutputHelper _output;
+        private bool _disposed = false;
+        private readonly string _browser;
 
-        public LoginTests(ITestOutputHelper output)
+        protected LoginTestsBase(ITestOutputHelper output, string browser)
         {
             _output = output;
-            _driver = WebDriverFactory.Instance.GetDriver("Chrome");
+            _browser = browser;
+            _driver = WebDriverFactory.Instance.GetDriver(_browser);
             _loginPage = new LoginPage(_driver);
             _dashboardPage = new DashboardPage(_driver);
         }
@@ -30,7 +29,8 @@ namespace TestAutomationTask.Tests
         [Fact]
         public void UC1_TestLoginWithEmptyCredentials()
         {
-            _output.WriteLine("Starting UC-1: Test Login form with empty credentials");
+            _output.WriteLine($"[{_browser}] Starting UC-1: Test Login form with empty credentials");
+            _output.WriteLine($"[{_browser}] Running on thread: {Environment.CurrentManagedThreadId}");
 
             // Navigate to login page
             _loginPage.NavigateToLoginPage();
@@ -61,7 +61,8 @@ namespace TestAutomationTask.Tests
         [Fact]
         public void UC2_TestLoginWithUsernameOnly()
         {
-            _output.WriteLine("Starting UC-2: Test Login form with username only");
+            _output.WriteLine($"[{_browser}] Starting UC-2: Test Login form with username only");
+            _output.WriteLine($"[{_browser}] Running on thread: {Environment.CurrentManagedThreadId}");
 
             // Navigate to login page
             _loginPage.NavigateToLoginPage();
@@ -94,7 +95,8 @@ namespace TestAutomationTask.Tests
         [Fact]
         public void UC3_TestLoginWithValidCredentials()
         {
-            _output.WriteLine("Starting UC-3: Test Login form with valid credentials");
+            _output.WriteLine($"[{_browser}] Starting UC-3: Test Login form with valid credentials");
+            _output.WriteLine($"[{_browser}] Running on thread: {Environment.CurrentManagedThreadId}");
 
             // Navigate to login page
             _loginPage.NavigateToLoginPage();
@@ -114,8 +116,21 @@ namespace TestAutomationTask.Tests
 
         public void Dispose()
         {
-            _output.WriteLine("Disposing WebDriver");
-            WebDriverFactory.Instance.QuitDriver();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                _output.WriteLine("Disposing WebDriver");
+                WebDriverFactory.Instance.QuitDriver();
+            }
+
+            _disposed = true;
         }
     }
 }
