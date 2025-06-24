@@ -33,7 +33,7 @@ namespace TestAutomationTask.Drivers
             }
         }
 
-        public IWebDriver GetDriver(string browserType = "Chrome")
+        public IWebDriver GetDriver(string browserType)
         {
             driver.Value ??= CreateDriver(browserType);
             return driver.Value;
@@ -88,16 +88,6 @@ namespace TestAutomationTask.Drivers
             if (driver.Value != null)
             {
                 driver.Value.Quit();
-                driver.Value = null!; // Use null-forgiving operator to suppress CS8625
-            }
-        }
-
-        public void DisposeAll()
-        {
-            if (driver.Value != null)
-            {
-                driver.Value.Quit();
-                driver.Dispose();
                 driver.Value = null!; // Use null-forgiving operator to suppress CS8625
             }
         }
