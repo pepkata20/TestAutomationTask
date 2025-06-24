@@ -16,6 +16,8 @@ namespace TestAutomationTask.Tests
         private readonly ITestOutputHelper output;
         private bool disposed = false;
         private readonly string browser;
+        public static IEnumerable<object[]> ValidLoginData =>
+            TestConfig.ValidUsernames.Select(username => new object[] { username, TestConfig.ValidPassword });
 
         protected LoginTestsBase(ITestOutputHelper output, string browser)
         {
@@ -26,10 +28,13 @@ namespace TestAutomationTask.Tests
             dashboardPage = new DashboardPage(driver);
         }
 
-        [Fact]
-        public void UC1_TestLoginWithEmptyCredentials()
+        [Theory]
+        [InlineData("", "", TestConfig.UsernameRequiredError, "Empty credentials")]
+        [InlineData("test_user", "", TestConfig.PasswordRequiredError, "Username only")]
+        [InlineData("locked_out_user", TestConfig.ValidPassword, TestConfig.LockedUserError, "Locked user")]
+        public void TestLogin(string username, string password, string expectedError, string scenario)
         {
-            output.WriteLine($"[{browser}] Starting UC-1: Test Login form with empty credentials");
+            output.WriteLine($"[{browser}] Starting: {scenario}");
             output.WriteLine($"[{browser}] Running on thread: {Environment.CurrentManagedThreadId}");
 
             // Navigate to login page
@@ -37,14 +42,19 @@ namespace TestAutomationTask.Tests
             output.WriteLine("Navigated to SauceDemo login page");
 
             // Type any credentials
-            loginPage.EnterUsername("test_user");
-            loginPage.EnterPassword("test_password");
+            loginPage.EnterUsername(username);
+            loginPage.EnterPassword(password);
             output.WriteLine("Entered test credentials");
 
             // Clear the inputs
-            loginPage.ClearUsername();
-            loginPage.ClearPassword();
-            output.WriteLine("Cleared both username and password fields");
+            if (username == "")
+            {
+                loginPage.ClearUsername();
+            }
+            if (password == "")
+            {
+                loginPage.ClearPassword();
+            }
 
             // Click Login button
             loginPage.ClickLoginButton();
@@ -54,46 +64,13 @@ namespace TestAutomationTask.Tests
             var errorMessage = loginPage.GetErrorMessage();
             output.WriteLine($"Error message displayed: {errorMessage}");
 
-            errorMessage.Should().Be(TestConfig.UsernameRequiredError);
-            output.WriteLine("UC-1 test completed successfully");
+            errorMessage.Should().Be(expectedError  );
+            output.WriteLine($"{scenario} completed successfully");
         }
 
-        [Fact]
-        public void UC2_TestLoginWithUsernameOnly()
-        {
-            output.WriteLine($"[{browser}] Starting UC-2: Test Login form with username only");
-            output.WriteLine($"[{browser}] Running on thread: {Environment.CurrentManagedThreadId}");
-
-            // Navigate to login page
-            loginPage.NavigateToLoginPage();
-            output.WriteLine("Navigated to SauceDemo login page");
-
-            // Enter username
-            loginPage.EnterUsername("standard_user");
-            output.WriteLine("Entered username: standard_user");
-
-            // Enter password
-            loginPage.EnterPassword("test_password");
-            output.WriteLine("Entered test password");
-
-            // Clear password field
-            loginPage.ClearPassword();
-            output.WriteLine("Cleared password field");
-
-            // Click Login button
-            loginPage.ClickLoginButton();
-            output.WriteLine("Clicked Login button");
-
-            // Verify error message
-            var errorMessage = loginPage.GetErrorMessage();
-            output.WriteLine($"Error message displayed: {errorMessage}");
-
-            errorMessage.Should().Be(TestConfig.PasswordRequiredError);
-            output.WriteLine("UC-2 test completed successfully");
-        }
-
-        [Fact]
-        public void UC3_TestLoginWithValidCredentials()
+        [Theory]
+        [MemberData(nameof(ValidLoginData))]
+        public void TestLoginWithValidCredentials(string username, string password)
         {
             output.WriteLine($"[{browser}] Starting UC-3: Test Login form with valid credentials");
             output.WriteLine($"[{browser}] Running on thread: {Environment.CurrentManagedThreadId}");
@@ -103,8 +80,8 @@ namespace TestAutomationTask.Tests
             output.WriteLine("Navigated to SauceDemo login page");
 
             // Login with valid credentials
-            loginPage.Login(TestConfig.ValidUsername, TestConfig.ValidPassword);
-            output.WriteLine($"Logged in with username: standard_user: {TestConfig.ValidUsername} and password: {TestConfig.ValidPassword}");
+            loginPage.Login(username, password);
+            output.WriteLine($"Logged in with username: {username} and password: {password}");
 
             // Verify app logo shows "Swag Labs"
             var appLogoText = dashboardPage.GetAppLogoText();
